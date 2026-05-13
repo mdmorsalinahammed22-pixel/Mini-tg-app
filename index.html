@@ -1,13 +1,15 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Watch & Earn - Mini App</title>
-    <!-- টেলিগ্রামের মেইন স্ক্রিপ্ট -->
-    <script src="https://telegram.org"></script>
-    <!-- AdsGram অ্যাড স্ক্রিপ্ট -->
-    <script src="https://adsgram.ai"></script>
+    
+    <!-- টেলিগ্রামের সঠিক অফিশিয়াল স্ক্রিপ্ট -->
+    <script src="telegram.org"></script>
+    
+    <!-- AdsGram অ্যাড-এর সঠিক অফিশিয়াল স্ক্রিপ্ট -->
+    <script src="adsgram.ai"></script>
     
     <style>
         body {
@@ -46,11 +48,10 @@
             display: none;
             margin-top: 20px;
         }
-        iframe {
+        video {
             width: 100%;
-            height: 250px;
             border-radius: 10px;
-            border: none;
+            background: #000;
         }
     </style>
 </head>
@@ -63,38 +64,59 @@
     <!-- অ্যাড দেখার বাটন -->
     <button id="adBtn" class="btn">ভিডিও আনলক করুন</button>
 
-    <!-- ভিডিও প্লেয়ার (শুরুতে হাইড করা থাকবে) -->
+    <!-- ভিডিও প্লেয়ার -->
     <div id="video-container">
         <h3>আপনার ভিডিওটি এখন দেখুন:</h3>
-        <iframe src="https://youtube.com" title="Video Player"></iframe>
+        <video id="myVideo" controls>
+            <source src="videos/promo_video.mp4" type="video/mp4">
+            আপনার ব্রাউজার ভিডিও সাপোর্ট করে না।
+        </video>
         <p style="color: green; font-weight: bold;">সফলভাবে আনলক হয়েছে!</p>
     </div>
 </div>
 
 <script>
-    // AdsGram ইনিশিয়ালাইজেশন
-    // এখানে 'YOUR_BLOCK_ID' এর জায়গায় আপনার AdsGram থেকে পাওয়া ID বসান
-    const AdController = window.Adsgram.init({ blockId: "30091" });
+    // টেলিগ্রাম ওয়েব অ্যাপ ইনিশিয়ালাইজেশন
+    if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+    }
+
+    // AdsGram সঠিক ইনিশিয়ালাইজেশন (উইন্ডো লোড হওয়ার পর)
+    // blockId "30091" টেস্ট আইডি হিসেবে ব্যবহৃত হচ্ছে
+    const AdController = window.Adsgram.init({ 
+        blockId: "30091", 
+        debug: true 
+    });
 
     const adBtn = document.getElementById('adBtn');
     const videoContainer = document.getElementById('video-container');
+    const myVideo = document.getElementById('myVideo');
 
     adBtn.addEventListener('click', () => {
-        // অ্যাড দেখানো শুরু
+        // বাটন সাময়িকভাবে ডিজেবল করা যাতে ডাবল ক্লিক না হয়
+        adBtn.disabled = true;
+        adBtn.innerText = "অ্যাড লোড হচ্ছে...";
+
+        // AdsGram নিয়ম অনুযায়ী অ্যাড দেখানো শুরু
         AdController.show().then((result) => {
-            // অ্যাড দেখা শেষ হলে ভিডিও দেখাবে
+            // ব্যবহারকারী সম্পূর্ণ অ্যাড দেখলে এই অংশটি কাজ করবে
             adBtn.style.display = 'none';
             videoContainer.style.display = 'block';
-        }).catch((error) => {
-            // অ্যাড না দেখলে বা কোনো সমস্যা হলে
-            alert("দুঃখিত! ভিডিওটি দেখতে হলে আপনাকে সম্পূর্ণ অ্যাডটি দেখতে হবে।");
-            console.error("Ad Error:", error);
+            myVideo.play().catch(err => console.log("Auto-play blocked by browser. User must click play."));
+        }).catch((result) => {
+            // অ্যাড লোড না হলে বা ব্যবহারকারী মাঝপথে কেটে দিলে (স্কিপ করলে)
+            adBtn.disabled = false;
+            adBtn.innerText = "ভিডিও আনলক করুন";
+            
+            if (result.error) {
+                alert("অ্যাড লোড হতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+                console.error("Ad Error:", result.description);
+            } else {
+                alert("দুঃখিত! ভিডিওটি দেখতে হলে আপনাকে সম্পূর্ণ অ্যাডটি দেখতে হবে।");
+            }
         });
     });
-
-    // টেলিগ্রাম ওয়েব অ্যাপ সেটআপ
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand(); // অ্যাপটি পুরো স্ক্রিন জুড়ে দেখাবে
 </script>
 
 </body>
